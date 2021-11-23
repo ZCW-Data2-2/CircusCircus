@@ -17,6 +17,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy(app)
 
 #VIEWS
+@app.route('/profile')
+def profile():
+	return render_template("profile.html")
+
 
 @app.route('/')
 def index():
@@ -226,6 +230,7 @@ class User(UserMixin, db.Model):
 	admin = db.Column(db.Boolean, default=False, unique=True)
 	posts = db.relationship("Post", backref="user")
 	comments = db.relationship("Comment", backref="user")
+	picture = db.Column(db.Text, default="/static/images/icons/default_user.png")
 
 	def __init__(self, email, username, password):
 		self.email = email
