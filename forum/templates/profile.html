@@ -3,41 +3,42 @@
 
 
 <div class="container">
-    <div class="col-auto" style="border: 1px solid;">
-        picture Here
+<div class="row"></div>
+    <div class="col-4" style="border: 1px solid;">
+<img class="img-fluid" src="{{resized_img_src(user.picture, width=400, height=400, mode='fit', quality=95)}}" />
+
+        {{ user.username}}
     </div>
-    <div class="col-auto" style="border: 1px solid;">
-        Display Name Here
-    </div>
-    <div class="col-8 right"> basic user stats
+
+    <div class="col-8"> basic user stats
     </div>
 </div>
+</div>
 
-    <!--
-<div class="container">
-  <div class="row">
-    <div class="col">
-      1 of 3
-    </div>
-    <div class="col-6">
-      2 of 3 (wider)
-    </div>
-    <div class="col">
-      3 of 3
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      1 of 3
-    </div>
-    <div class="col-5">
-      2 of 3 (wider)
-    </div>
-    <div class="col">
-      3 of 3
-    </div>
-  </div>
-</div>-->
+<!--<div class="container">-->
+<!--  <div class="row">-->
+<!--    <div class="col">-->
+<!--      1 of 3-->
+<!--    </div>-->
+<!--    <div class="col-6">-->
+<!--      2 of 3 (wider)-->
+<!--    </div>-->
+<!--    <div class="col">-->
+<!--      3 of 3-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="row">-->
+<!--    <div class="col">-->
+<!--      1 of 3-->
+<!--    </div>-->
+<!--    <div class="col-5">-->
+<!--      2 of 3 (wider)-->
+<!--    </div>-->
+<!--    <div class="col">-->
+<!--      3 of 3-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
 {% endblock %}
 
 
