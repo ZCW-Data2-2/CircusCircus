@@ -31,7 +31,7 @@ def profile():
             try:
                 user_id = current_user.id
             except AttributeError:
-                return redirect(url_for("loginform"))
+                return render_template("login.html", alert="Not logged in: log in to view your profile.")
     user = User.query.filter(User.id == user_id).first()
     if not user:
         return render_template("error.html", error="That User Does Note Exist")
