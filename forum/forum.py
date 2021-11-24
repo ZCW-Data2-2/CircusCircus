@@ -23,7 +23,15 @@ db = SQLAlchemy(app)
 # VIEWS
 @app.route('/profile')
 def profile():
-    user_id = int(request.args.get("user"))
+    user_id = None
+    try:
+        user_id = int(request.args.get("user"))
+    except TypeError:
+        if user_id is None:
+            try:
+                user_id = current_user.id
+            except AttributeError:
+                return redirect(url_for("loginform"))
     user = User.query.filter(User.id == user_id).first()
     if not user:
         return render_template("error.html", error="That User Does Note Exist")
