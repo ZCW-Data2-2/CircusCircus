@@ -3,10 +3,13 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="bootstrap.min.css")}}">
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="style.css")}}">
+	<link rel="shortcut icon" type="text/css" href="{{url_for('static', filename="favicon.png")}}">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{ config.SITE_NAME }}</title>
 </head>
 <body>
 <div class="page">
+	<img src="Users/cantekinefe/dev/CircusCircus/forum/static/favicon.png" alt="logo"/>
 	<div class="header">
 		{% include 'header.html' %}
 	</div>
@@ -25,6 +28,24 @@
 	</div>
 </div>
 </body>
-
+<footer>
+<div class="page">
+	<div class="footer">
+		{% include 'footer.html' %}
+	</div>
+	{% if errors %}
+	<div class="errors">
+		{% for error in errors %}
+			<p class="error">
+				{{ error }}
+			</p>
+		{% endfor %}
+	</div>
+	{% endif %}
+	<div class="content">
+		{% block footer %}{% endblock footer %}
+	</div>
+</div>
+</footer>
 
 </html>
