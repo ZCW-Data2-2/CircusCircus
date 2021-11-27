@@ -24,14 +24,24 @@ db = SQLAlchemy(app)
 # VIEWS
 @app.route('/profile/<user_name>')
 def profile(user_name):
+    # if not user_name:
+    #     return render_template('error.html', error="user does not exist")
     user = User.query.filter(User.username == user_name).first()
-    recent_comments = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.id.desc()).limit(5)
-    recent_posts = Post.query.filter(Post.user_id == user.id).order_by(Post.id.desc()).limit(5)
     if not user:
         return render_template('error.html', error="user does not exist")
+    recent_comments = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.id.desc()).limit(5)
+    recent_posts = Post.query.filter(Post.user_id == user.id).order_by(Post.id.desc()).limit(5)
+
     return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts)
 
 
+@app.route('/profile')
+def profile_default():
+    try:
+        user_name = current_user.username
+        return redirect(url_for('profile', user_name=current_user.username))
+    except  AttributeError:
+        return render_template("login.html", alert="login to view your profile")
 
 
 @app.route('/')
@@ -157,6 +167,7 @@ def action_createaccount():
     username = request.form['username']
     password = request.form['password']
     email = request.form['email']
+    displayname = request.form['displayname']
     errors = []
     retry = False
     if username_taken(username):
@@ -173,7 +184,7 @@ def action_createaccount():
     # 	retry = True
     if retry:
         return render_template("login.html", errors=errors)
-    user = User(email, username, password)
+    user = User(email, username, password, displayname)
     if user.username == "admin":
         user.admin = True
     db.session.add(user)
@@ -266,14 +277,19 @@ class User(UserMixin, db.Model):
     posts = db.relationship("Post", backref="user")
     comments = db.relationship("Comment", backref="user")
     picture = db.Column(db.Text, default="icons/default_user.png")
+    displayname = db.Column(db.Text)
 
-    def __init__(self, email, username, password):
+    def __init__(self, email, username, password, displayname):
+        if not displayname:
+            displayname = username
         self.email = email
         self.username = username
         self.password_hash = generate_password_hash(password)
+        self.displayname = displayname
 
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+
+def check_password(self, password):
+    return check_password_hash(self.password_hash, password)
 
 
 class Post(db.Model):
