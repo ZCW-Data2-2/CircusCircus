@@ -30,11 +30,11 @@ def profile(user_id):
 
 @app.route('/profile')
 def profile_default():
-    user = current_user.id
-    if not user:
-        return render_template("login.html", alert="login to edit your profile")
+    if current_user.is_authenticated:
+        user = current_user
+        return render_template("profile.html",user=user)
     else:
-        return render_template("profile.html",user=current_user)
+        return render_template("login.html", alert="login to edit your profile")
 
 
 @app.route('/')
