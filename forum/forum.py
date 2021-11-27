@@ -258,6 +258,8 @@ def valid_content(content):
 
 
 # OBJECT MODELS
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, unique=True)

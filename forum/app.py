@@ -7,6 +7,6 @@ app.config.update(
     SECRET_KEY=b'kristofer',
     SITE_NAME="CHYRP",
     SITE_DESCRIPTION="CHYRP Has You Reading Posts",
-    SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db',
+    SQLALCHEMY_DATABASE_URI='sqlite:///tmp/database.db',
     IMAGES_PATH=['images']
 )
