@@ -14,6 +14,7 @@ from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
+
 #
 images = Images(app)
 
@@ -21,18 +22,21 @@ db = SQLAlchemy(app)
 
 
 # VIEWS
-@app.route('/profile/<int:user_id>')
-def profile(user_id):
-    user = User.query.filter(User.id == user_id).first()
+@app.route('/profile/<user_name>')
+def profile(user_name):
+    user = User.query.filter(User.username == user_name).first()
+    recent_comments = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.id.desc()).limit(5)
+    recent_posts = Post.query.filter(Post.user_id == user.id).order_by(Post.id.desc()).limit(5)
     if not user:
         return render_template('error.html', error="user does not exist")
-    return render_template("profile.html", user=user)
+    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts)
+
 
 @app.route('/profile')
 def profile_default():
     if current_user.is_authenticated:
         user = current_user
-        return render_template("profile.html",user=user)
+        return render_template("profile.html", user=user)
     else:
         return render_template("login.html", alert="login to edit your profile")
 

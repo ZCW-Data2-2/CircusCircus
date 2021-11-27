@@ -13,8 +13,21 @@
             <div class="col-12 col-md-6 col-lg-8 rounded thin-border">
                 <div><b>email: </b>{{ user.email }}</div>
                 <div><h2>Recent Posts</h2></div>
-                <div><h2>Recent Comments</h2></div>
-                <div><h2>Direct Messages</h2></div>
+                    {% if recent_posts %}
+                        {% for recent_post in recent_posts %}
+                            <div>  {{ recent_post }} </div>
+                        {% endfor %}
+                    {% endif %}
+                <div><h2>Recent Comments</h2>
+                    {% if recent_comments %}
+                        {% for recent_comment in recent_comments %}
+                            <div>  {{ recent_comment }} </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% if current_user.is_authenticated %}
+                    <div><h2>Direct Messages</h2></div>
+                {% endif %}
             </div>
         </div>
     </div>
