@@ -22,6 +22,12 @@ db = SQLAlchemy(app)
 
 
 # VIEWS
+@login_required
+@app.route('/action_profile', methods=['POST', 'GET'])
+def action_profile():
+    pass
+
+
 @app.route('/profile/<user_name>')
 def profile(user_name):
     # if not user_name:
