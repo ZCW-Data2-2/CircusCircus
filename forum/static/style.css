@@ -19,6 +19,12 @@
 	padding: 0.5%;
 	margin-bottom: none;
 }
+
+.footer{
+	font-size: 8pt;
+	font-style: italic;
+}
+
 .content{
 	margin-top: 0.5%;
 }
