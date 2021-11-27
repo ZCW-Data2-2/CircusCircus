@@ -19,6 +19,12 @@
 	padding: 0.5%;
 	margin-bottom: none;
 }
+
+.footer{
+	font-size: 8pt;
+	font-style: italic;
+}
+
 .content{
 	margin-top: 0.5%;
 }
@@ -188,4 +194,15 @@
 }
 .varwidth{
 	width: 50%;
+}
+
+.rounded{
+	border-radius: 1em;
+}
+
+.thin-border{
+	border: 1px solid;
+}
+.centered{
+	text-align: center;
 }
