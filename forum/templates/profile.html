@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+
+    <div class="container" style="width: auto">
+        <div class="row">
+            <div class="col-12 col-md-6 col-lg-4 rounded thin-border centered">
+                <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
+                <h2> {{ user.username }}</h2>
+
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-8 rounded thin-border">
+                <div><b>email: </b>{{ user.email }}</div>
+                <div><h2>Recent Posts</h2></div>
+                <div><h2>Recent Comments</h2></div>
+                <div><h2>Direct Messages</h2></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
