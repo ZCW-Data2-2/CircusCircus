@@ -14,30 +14,27 @@ from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
-
+#
 images = Images(app)
 
 db = SQLAlchemy(app)
 
 
 # VIEWS
-@app.route('/profile')
-def profile():
-    user_id = None
-    try:
-        user_id = int(request.args.get("user"))
-    except TypeError:
-        if user_id is None:
-            try:
-                user_id = current_user.id
-            except AttributeError:
-                return render_template("login.html", alert="Not logged in: log in to view your profile.")
+@app.route('/profile/<int:user_id>')
+def profile(user_id):
     user = User.query.filter(User.id == user_id).first()
     if not user:
-        return render_template("error.html", error="That User Does Note Exist")
-
+        return render_template('error.html', error="user does not exist")
     return render_template("profile.html", user=user)
 
+@app.route('/profile')
+def profile_default():
+    user = current_user.id
+    if not user:
+        return render_template("login.html", alert="login to edit your profile")
+    else:
+        return render_template("profile.html",user=current_user)
 
 
 @app.route('/')
