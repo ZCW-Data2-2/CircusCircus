@@ -141,3 +141,5 @@ dmypy.json
 cython_debug/
 .DS_Store
 .idea
+forum/static/bootstrap.min.css
+bootstrap.min.css
