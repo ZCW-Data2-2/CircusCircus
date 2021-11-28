@@ -49,7 +49,10 @@ def subforum():
     subforum = Subforum.query.filter(Subforum.id == subforum_id).first()
     if not subforum:
         return error("That subforum does not exist!")
-    posts = Post.query.filter(Post.subforum_id == subforum_id).order_by(Post.id.desc()).limit(50)
+    if current_user.is_authenticated:
+        posts = Post.query.filter(Post.subforum_id == subforum_id).order_by(Post.id.desc()).limit(50)
+    else:
+        posts = Post.query.filter(Post.subforum_id == subforum_id, Post.private == False).order_by(Post.id.desc()).limit(50)
     if not subforum.path:
         subforum.path = generateLinkPath(subforum.id)
 
@@ -287,6 +290,9 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
+    private = db.Column(db.Boolean, default=False)
+
+
 
     # cache stuff
     lastcheck = None
