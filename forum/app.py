@@ -9,5 +9,6 @@ app.config.update(
     COPY_RIGHT="Copyright © 2021 CHYRP. All rights reserved",
     SITE_NAME="CHYRP",
     SITE_DESCRIPTION="CHYRP Has You Reading Posts",
-    IMAGES_PATH=['images']
+    IMAGES_PATH=['images'],
+    SQLALCHEMY_TRACK_MODIFICATIONS=True
 )
