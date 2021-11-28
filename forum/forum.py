@@ -14,6 +14,7 @@ from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
+
 #
 images = Images(app)
 
@@ -28,11 +29,12 @@ def profile(user_id):
         return render_template('error.html', error="user does not exist")
     return render_template("profile.html", user=user)
 
+
 @app.route('/profile')
 def profile_default():
     if current_user.is_authenticated:
         user = current_user
-        return render_template("profile.html",user=user)
+        return render_template("profile.html", user=user)
     else:
         return render_template("login.html", alert="login to edit your profile")
 
@@ -52,7 +54,8 @@ def subforum():
     if current_user.is_authenticated:
         posts = Post.query.filter(Post.subforum_id == subforum_id).order_by(Post.id.desc()).limit(50)
     else:
-        posts = Post.query.filter(Post.subforum_id == subforum_id, Post.private == False).order_by(Post.id.desc()).limit(50)
+        posts = Post.query.filter(Post.subforum_id == subforum_id, Post.private == False).order_by(
+            Post.id.desc()).limit(50)
     if not subforum.path:
         subforum.path = generateLinkPath(subforum.id)
 
@@ -118,6 +121,10 @@ def action_post():
     user = current_user
     title = request.form['title']
     content = request.form['content']
+    private = False
+    if request.form.get('private', False):
+        private = True
+
     # check for valid posting
     errors = []
     retry = False
@@ -129,10 +136,13 @@ def action_post():
         retry = True
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
-    post = Post(title, content, datetime.datetime.now())
+    # if request.method == 'POST':
+    #     return request.form.getlist(private)
+    post = Post(title, content, datetime.datetime.now(), private)
     subforum.posts.append(post)
     user.posts.append(post)
     db.session.commit()
+
     return redirect("/viewpost?post=" + str(post.id))
 
 
@@ -174,9 +184,9 @@ def action_createaccount():
     if not valid_username(username):
         errors.append("Username is not valid!")
         retry = True
-    # if not valid_password(password):
-    # 	errors.append("Password is not valid!")
-    # 	retry = True
+    if not valid_password(password):
+        errors.append("Password is not valid!")
+        retry = True
     if retry:
         return render_template("login.html", errors=errors)
     user = User(email, username, password)
@@ -292,16 +302,15 @@ class Post(db.Model):
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
 
-
-
     # cache stuff
     lastcheck = None
     savedresponce = None
 
-    def __init__(self, title, content, postdate):
+    def __init__(self, title, content, postdate, private):
         self.title = title
         self.content = content
         self.postdate = postdate
+        self.private = private
 
     def get_time_string(self):
         # this only needs to be calculated every so often, not for every request
@@ -353,6 +362,7 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey("post.id"))
 
     lastcheck = None
+
     savedresponce = None
 
     def __init__(self, content, postdate):
