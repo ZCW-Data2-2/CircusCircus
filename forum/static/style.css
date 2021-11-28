@@ -198,6 +198,7 @@
 
 .rounded{
 	border-radius: 1em;
+	padding: 1em;
 }
 
 .thin-border{
@@ -205,4 +206,7 @@
 }
 .centered{
 	text-align: center;
+}
+.form-check-label{
+    font-weight: normal;
 }
