@@ -23,7 +23,7 @@ db = SQLAlchemy(app)
 
 # VIEWS
 @login_required
-@app.route('/action_profile', methods=['POST', 'GET'])
+@app.route('/action_profile_update', methods=['POST', 'GET'])
 def action_profile():
     pass
 

@@ -7,7 +7,9 @@
             <div class="col-md-6 col-lg-4 centered">
                 <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
                 <h2> {{ user.username }}</h2>
-                <div><b>email: </b>{{ user.email }}</div>
+                {% if current_user.is_authenticated %}
+                    <div><b>email: </b>{{ user.email }}</div>
+                {% endif %}
 
             </div>
 
