@@ -86,16 +86,6 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
 
-@app.route('/profile/<int:user_id>')
-def profile(user_id):
-    user = User.query.filter(User.id == user_id).first()
-    if not user:
-        return render_template('error.html', error="user does not exist")
-    return render_template("profile.html", user=user)
-
-
-
-
 @app.route('/')
 def index():
     subforums = Subforum.query.filter(Subforum.parent_id == None).order_by(Subforum.id)
