@@ -14,6 +14,9 @@ from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
+from flask_socketio import SocketIO
+socketio = SocketIO(app)
+
 #
 images = Images(app)
 
@@ -21,12 +24,24 @@ db = SQLAlchemy(app)
 
 
 # VIEWS
-@app.route('/profile/<int:user_id>')
-def profile(user_id):
-    user = User.query.filter(User.id == user_id).first()
-    if not user:
-        return render_template('error.html', error="user does not exist")
-    return render_template("profile.html", user=user)
+
+@app.route('/chat',methods=['GET', 'POST'])
+def sessions():
+    if current_user.is_authenticated:
+        user = current_user
+        return render_template("session.html", user=user)
+    else:
+        return render_template("login.html", alert="login to join open chat room")
+
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+
+@socketio.on('my event')
+def handle_my_custom_event(json, methods=['GET', 'POST']):
+    print('received my event: ' + str(json))
+    socketio.emit('my response', json, callback=messageReceived)
+   # return render_template("login.html")
 
 @app.route('/profile')
 def profile_default():
@@ -35,6 +50,20 @@ def profile_default():
         return render_template("profile.html",user=user)
     else:
         return render_template("login.html", alert="login to edit your profile")
+
+if __name__ == '__main__':
+    port = int(os.environ["PORT"])
+    app.run(host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, debug=True)
+
+@app.route('/profile/<int:user_id>')
+def profile(user_id):
+    user = User.query.filter(User.id == user_id).first()
+    if not user:
+        return render_template('error.html', error="user does not exist")
+    return render_template("profile.html", user=user)
+
+
 
 
 @app.route('/')
