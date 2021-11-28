@@ -207,3 +207,6 @@
 .centered{
 	text-align: center;
 }
+.form-check-label{
+    font-weight: normal;
+}
