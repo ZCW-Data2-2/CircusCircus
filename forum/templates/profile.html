@@ -23,7 +23,7 @@
                     {% if recent_comments %}
                         {% for recent_comment in recent_comments %}
 
-                            <div class="thin-border rounded" style="padding: 1em">  {{ recent_comment.content }} </div>
+                            <div class="thin-border rounded">  {{ recent_comment.content }} </div>
                             <div><a href="/viewpost?post={{ recent_comment.post.id }}">attached
                                 to: {{ recent_comment.post.title }}</a></div>
                             <br>
