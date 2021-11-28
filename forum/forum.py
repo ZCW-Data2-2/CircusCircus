@@ -51,16 +51,10 @@ def profile(user_name):
 
 @app.route('/profile')
 def profile_default():
-<<<<<<< HEAD
-    try:
-        return redirect(url_for('profile', user_name=current_user.username))
-    except AttributeError:
-=======
     if current_user.is_authenticated:
         user = current_user
         return render_template("profile.html", user=user)
     else:
->>>>>>> 906a116f27bb5ad2607d62d3c377dde959bed7e7
         return render_template("login.html", alert="login to edit your profile")
 
 
