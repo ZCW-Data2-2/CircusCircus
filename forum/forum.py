@@ -31,17 +31,21 @@ def action_profile():
 @app.route('/profile/<user_name>')
 def profile(user_name):
     user = User.query.filter(User.username == user_name).first()
+    owns_profile = False
     if not user:
         return render_template('error.html', error="user does not exist")
     if current_user.is_authenticated:
+        if current_user.username == user_name:
+            owns_profile = True
         recent_posts = Post.query.filter(Post.user_id == user.id).order_by(Post.id.desc()).limit(5)
-        recent_comments = Comment.query.filter(Comment.user_id == user.id,comment.).order_by(Comment.id.desc()).limit(5)
-    else:
-        recent_posts = Post.query.filter(Post.user_id == user.id, Post.private == False).order_by(Post.id.desc()).limit(
-            5)
         recent_comments = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.id.desc()).limit(5)
+    else:
+        recent_posts = Post.query.filter(Post.user_id == user.id, Post.private == False).order_by(
+            Post.id.desc()).limit(5)
+        recent_comments = Comment.query.filter(Comment.user_id == user.id).join(Post).filter(
+            Post.private == False).order_by(Comment.id.desc()).limit(5)
 
-    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts)
+    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts, owns_profile=owns_profile)
 
 
 @app.route('/profile')
@@ -307,6 +311,7 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
+    private = db.Column(db.Boolean, default=False)
 
     # cache stuff
     lastcheck = None
