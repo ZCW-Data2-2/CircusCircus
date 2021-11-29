@@ -16,12 +16,20 @@
     </div>
     <div class="postcontent">
         {{post.content}}
-      
-   		<br><br>
-		<textare><b>Your attached hyperlink:</b></textare><br>
-		<a href="{{post.url}}">{{post.url}}</a>
-      
+        <br><br>
     </div>
+
+    <div class="posturl"></div>
+
+		<small><b>Your attached hyperlink:</b></small><br>
+		<a href="{{post.url}}">{{post.url}}</a><br><br>
+
+    <div class="postimage"></div>
+
+        <small><b>Attached image:</b></small><br>
+        <img src="{{post.image}}" width="300">
+
+
 
 </div>
 
