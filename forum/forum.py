@@ -193,13 +193,14 @@ def action_post():
     return redirect("/viewpost?post=" + str(post.id))
 
 @login_required
-@app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
+@app.route('/action_like/<int:post_id>/<action>')
+# @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
 def action_like(post_id, action):
     post = Post.query.filter_by(id=post_id).first_or_404()
     if action == 'like':
         current_user.like_post(post)
         db.session.commit()
-    if action =='unlike':
+    if action == 'unlike':
         current_user.unlike_post(post)
         db.session.commit()
     return redirect(request.referrer)
@@ -344,7 +345,7 @@ class User(UserMixin, db.Model):
     comments = db.relationship("Comment", backref="user")
     picture = db.Column(db.Text, default="icons/default_user.png")
     displayname = db.Column(db.Text)
-    liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
+    # liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
 
     def __init__(self, email, username, password, displayname):
         if not displayname:
@@ -385,10 +386,7 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
-<<<<<<< HEAD
     likes = db.relationship("Post_Like", backref='post', lazy='dynamic')
-=======
->>>>>>> c1ca09cd3800e452213789389ed8c3d5b05bc5df
 
     # cache stuff
     lastcheck = None
