@@ -209,6 +209,7 @@ def action_post():
     title = request.form['title']
     content = request.form['content']
     url = request.form['url']
+    image = request.form['image']
     private = False
     if request.form.get('private', False):
         private = True
@@ -225,7 +226,7 @@ def action_post():
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
 
-    post = Post(title, content, datetime.datetime.now(), private, url)
+    post = Post(title, content, datetime.datetime.now(), private, url, image)
     # if request.method == 'POST':
     #     return request.form.getlist(private)
 
@@ -457,8 +458,8 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
-
     url = db.Column(db.Text)
+    image = db.Column(db.Text)
 
 
 
@@ -472,12 +473,13 @@ class Post(db.Model):
 
 
 
-    def __init__(self, title, content, postdate, private, url):
+    def __init__(self, title, content, postdate, private, url, image):
         self.title = title
         self.content = content
         self.postdate = postdate
         self.private = private
         self.url = url
+        self.image = image
 
 
     def get_time_string(self):
