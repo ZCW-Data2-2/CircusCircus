@@ -26,23 +26,30 @@
 </div>
 
 <div class="likepost" id="likepost">
+    {% if current_user.is_authenticated %}
         {% if current_user.has_liked_post(post) %}
             <a href="{{ url_for('action_like', post_id=post.id, action='unlike') }}"><img src="{{url_for('images', filename='heart.png', width=50)}}" />Unlike</a>
         {% else %}
             <a href="{{ url_for('action_like', post_id=post.id, action='like') }}"><img src="{{url_for('images', filename='heart.png', width=30)}}" />Like</a>
         {% endif %}
         {{ post.likes.count() }} likes
-
+    {% else %}
+        <img src="{{url_for('images', filename='heart.png', width=30)}}" />{{ post.likes.count() }} likes
+    {% endif %}
 </div>
 
 
 <div class="dislikepost" id="dislikepost">
+    {% if current_user.is_authenticated %}
         {% if current_user.has_disliked_post(post) %}
             <a href="{{ url_for('action_dislike', post_id=post.id, action='undislike') }}"><img src="{{url_for('images', filename='sadpoop.jpg', width=50)}}" />Undislike</a>
         {% else %}
             <a href="{{ url_for('action_dislike', post_id=post.id, action='dislike') }}"><img src="{{url_for('images', filename='sadpoop.jpg', width=30)}}" />Dislike</a>
         {% endif %}
         {{ post.dislikes.count() }} dislikes
+    {% else %}
+        <img src="{{url_for('images', filename='sadpoop.jpg', width=30)}}" />{{ post.dislikes.count() }} dislikes
+    {% endif %}
 </div>
 
 <div class="addcomment" id="addcomment">
