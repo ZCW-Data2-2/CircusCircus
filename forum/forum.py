@@ -211,6 +211,19 @@ def action_like(post_id, action):
         db.session.commit()
     return redirect(request.referrer)
 
+@login_required
+@app.route('/action_dislike/<int:post_id>/<action>')
+# @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
+def action_dislike(post_id, action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action == 'dislike':
+        current_user.dislike_post(post)
+        db.session.commit()
+    if action == 'undislike':
+        current_user.undislike_post(post)
+        db.session.commit()
+    return redirect(request.referrer)
+
 
 @app.route('/action_login', methods=['POST'])
 def action_login():
@@ -351,6 +364,7 @@ class User(UserMixin, db.Model):
     picture = db.Column(db.Text, default="icons/default_user.png")
     displayname = db.Column(db.Text)
     liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
+    disliked = db.relationship('Post_Dislike', foreign_keys='Post_Dislike.user_id', backref='user', lazy='dynamic')
 
     def __init__(self, email, username, password, displayname):
         if not displayname:
@@ -370,15 +384,30 @@ class User(UserMixin, db.Model):
 
     def unlike_post(self, post):
         if self.has_liked_post(post):
-            Post_Like.query.filter(
+            like = Post_Like.query.filter_by(
                 user_id=self.id,
-                post_id=post.id).delete()
+                post_id=post.id).delete(like)
 
     def has_liked_post(self, post):
         return Post_Like.query.filter(
             Post_Like.user_id == self.id,
             Post_Like.post_id == post.id).count() > 0
 
+    def dislike_post(self, post):
+        if not self.has_disliked_post(post):
+            dislike = Post_Dislike(user_id=self.id, post_id=post.id)
+            db.session.add(dislike)
+
+    def undislike_post(self, post):
+        if self.has_disliked_post(post):
+            Post_Dislike.query.filter_by(
+                user_id=self.id,
+                post_id=post.id).delete()
+
+    def has_disliked_post(self, post):
+        return Post_Dislike.query.filter(
+            Post_Dislike.user_id == self.id,
+            Post_Dislike.post_id == post.id).count() > 0
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -390,6 +419,7 @@ class Post(db.Model):
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
     likes = db.relationship("Post_Like", backref='post', lazy='dynamic')
+    dislikes = db.relationship("Post_Dislike", backref='post', lazy='dynamic')
 
     # cache stuff
     lastcheck = None
@@ -484,6 +514,11 @@ class Comment(db.Model):
 
 class Post_Like(db.Model):
     # __tablename__ = 'post_like'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+
+class Post_Dislike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
