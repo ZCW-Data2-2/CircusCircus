@@ -1,4 +1,5 @@
 import flask_images
+import os
 from flask import *
 # from flask.ext.login import LoginManager, login_required, current_user, logout_user, login_user
 from flask_login import LoginManager, current_user, login_user, logout_user
@@ -16,8 +17,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_images import *
 
 from flask_socketio import SocketIO
-socketio = SocketIO(app)
 
+socketio = SocketIO(app)
 
 #
 images = Images(app)
@@ -50,17 +51,18 @@ def profile(user_name):
         recent_comments = Comment.query.filter(Comment.user_id == user.id).join(Post).filter(
             Post.private == False).order_by(Comment.id.desc()).limit(5)
 
-    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts, owns_profile=owns_profile)
+    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts,
+                           owns_profile=owns_profile)
 
 
-
-@app.route('/chat',methods=['GET', 'POST'])
+@app.route('/chat', methods=['GET', 'POST'])
 def sessions():
     if current_user.is_authenticated:
         user = current_user
         return render_template("session.html", user=user)
     else:
         return render_template("login.html", alert="login to join open chat room")
+
 
 def messageReceived(methods=['GET', 'POST']):
     print('message was received!!!')
@@ -70,21 +72,24 @@ def messageReceived(methods=['GET', 'POST']):
 def handle_my_custom_event(json, methods=['GET', 'POST']):
     print('received my event: ' + str(json))
     socketio.emit('my response', json, callback=messageReceived)
-   # return render_template("login.html")
+
+
+# return render_template("login.html")
 
 
 @app.route('/profile')
 def profile_default():
     if current_user.is_authenticated:
-        user = current_user
-        return render_template("profile.html", user=user)
+        return redirect(f'/profile/{current_user.username}')
     else:
         return render_template("login.html", alert="login to edit your profile")
+
 
 if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
+
 
 @app.route('/')
 def index():
