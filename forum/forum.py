@@ -198,6 +198,20 @@ def action_post():
     return redirect("/viewpost?post=" + str(post.id))
 
 
+@login_required
+@app.route('/action_like/<int:post_id>/<action>')
+# @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
+def action_like(post_id, action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action == 'like':
+        current_user.like_post(post)
+        db.session.commit()
+    if action == 'unlike':
+        current_user.unlike_post(post)
+        db.session.commit()
+    return redirect(request.referrer)
+
+
 @app.route('/action_login', methods=['POST'])
 def action_login():
     username = request.form['username']
@@ -336,6 +350,7 @@ class User(UserMixin, db.Model):
     comments = db.relationship("Comment", backref="user")
     picture = db.Column(db.Text, default="icons/default_user.png")
     displayname = db.Column(db.Text)
+    liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
 
     def __init__(self, email, username, password, displayname):
         if not displayname:
@@ -348,6 +363,22 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def like_post(self, post):
+        if not self.has_liked_post(post):
+            like = Post_Like(user_id=self.id, post_id=post.id)
+            db.session.add(like)
+
+    def unlike_post(self, post):
+        if self.has_liked_post(post):
+            Post_Like.query.filter(
+                Post_Like.user_id == self.id,
+                Post_Like.user_id == post.id).delete()
+
+    def has_liked_post(self, post):
+        return Post_Like.query.filter(
+            Post_Like.user_id == self.id,
+            Post_Like.user_id == post.id).count() > 0
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -358,6 +389,7 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
+    likes = db.relationship("Post_Like", backref='post', lazy='dynamic')
 
     # cache stuff
     lastcheck = None
@@ -448,6 +480,13 @@ class Comment(db.Model):
         else:
             self.savedresponce = "Just a moment ago!"
         return self.savedresponce
+
+
+class Post_Like(db.Model):
+    # __tablename__ = 'post_like'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
 
 def init_site():
