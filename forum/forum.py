@@ -118,6 +118,7 @@ def action_post():
     user = current_user
     title = request.form['title']
     content = request.form['content']
+    url = request.form['url']
     # check for valid posting
     errors = []
     retry = False
@@ -129,7 +130,7 @@ def action_post():
         retry = True
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
-    post = Post(title, content, datetime.datetime.now())
+    post = Post(title, content, datetime.datetime.now(), url)
     subforum.posts.append(post)
     user.posts.append(post)
     db.session.commit()
@@ -148,6 +149,7 @@ def action_login():
         errors.append("Username or password is incorrect!")
         return render_template("login.html", errors=errors)
     return redirect("/")
+
 
 
 @login_required
@@ -291,6 +293,7 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
+    url = db.Column(db.Text)
 
 
 
@@ -298,10 +301,11 @@ class Post(db.Model):
     lastcheck = None
     savedresponce = None
 
-    def __init__(self, title, content, postdate):
+    def __init__(self, title, content, postdate, url):
         self.title = title
         self.content = content
         self.postdate = postdate
+        self.url = url
 
     def get_time_string(self):
         # this only needs to be calculated every so often, not for every request
