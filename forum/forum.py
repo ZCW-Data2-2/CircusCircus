@@ -16,7 +16,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
 
-from flask_socketio import SocketIO
+
+from flask_socketio import SocketIO, join_room, leave_room, emit
+from flask_session import Session
+
 
 socketio = SocketIO(app)
 
@@ -79,26 +82,57 @@ def profile(user_name):
                            owns_profile=owns_profile)
 
 
-@app.route('/chat', methods=['GET', 'POST'])
-def sessions():
+@app.route('/chat',methods=['GET', 'POST'])
+def chat():
     if current_user.is_authenticated:
-        user = current_user
-        return render_template("session.html", user=user)
+        user = current_user.username
+        room="Open Chat Room"
+        session['user'] = user
+        session['room'] = room
+        ##return "chat"
+        return render_template("session1.html", session=session)
     else:
         return render_template("login.html", alert="login to join open chat room")
 
+@socketio.on('join', namespace='/chat')
+def join(message):
+    user = current_user.username
+    room="Open Chat Room"
+    join_room(room)
+    emit('status', {'msg':  'Keerthi' + ' has joined the chat'}, room = room)
 
-def messageReceived(methods=['GET', 'POST']):
-    print('message was received!!!')
+@socketio.on('text', namespace='/chat')
+def text(message):
+    user = current_user.username
+    room = "Open Chat Room"
+    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, room=room)
 
 
-@socketio.on('my event')
-def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('received my event: ' + str(json))
-    socketio.emit('my response', json, callback=messageReceived)
+@socketio.on('left', namespace='/chat')
+def left(message):
+    user = current_user.username
+    room = "Open Chat Room"
+    leave_room(room)
+    session.clear()
+    emit('status', {'msg': user + ' has left the room.'}, room=room)
 
+#@app.route('/chat',methods=['GET', 'POST'])
+#def sessions():
+#    if current_user.is_authenticated:
+#        user = current_user
+#        return render_template("session.html", user=user)
+#    else:
+#        return render_template("login.html", alert="login to join open chat room")
 
-# return render_template("login.html")
+#def messageReceived(methods=['GET', 'POST']):
+#    print('message was received!!!')
+#
+#@socketio.on('my event')
+#def handle_my_custom_event(json, methods=['GET', 'POST']):
+#    print('received my event: ' + str(json))
+#    socketio.emit('my response', json, callback=messageReceived)
+   # return render_template("login.html")
+
 
 
 @app.route('/profile')
@@ -113,6 +147,7 @@ if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
+    session = Session(app)
 
 
 @app.route('/')
@@ -197,6 +232,8 @@ def action_post():
     user = current_user
     title = request.form['title']
     content = request.form['content']
+    url = request.form['url']
+    image = request.form['image']
     private = False
     if request.form.get('private', False):
         private = True
@@ -212,9 +249,11 @@ def action_post():
         retry = True
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
+
+    post = Post(title, content, datetime.datetime.now(), private, url, image)
     # if request.method == 'POST':
     #     return request.form.getlist(private)
-    post = Post(title, content, datetime.datetime.now(), private)
+
     subforum.posts.append(post)
     user.posts.append(post)
     db.session.commit()
@@ -235,6 +274,19 @@ def action_like(post_id, action):
         db.session.commit()
     return redirect(request.referrer)
 
+@login_required
+@app.route('/action_dislike/<int:post_id>/<action>')
+# @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
+def action_dislike(post_id, action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action == 'dislike':
+        current_user.dislike_post(post)
+        db.session.commit()
+    if action == 'undislike':
+        current_user.undislike_post(post)
+        db.session.commit()
+    return redirect(request.referrer)
+
 
 @app.route('/action_login', methods=['POST'])
 def action_login():
@@ -248,6 +300,7 @@ def action_login():
         errors.append("Username or password is incorrect!")
         return render_template("login.html", errors=errors)
     return redirect("/")
+
 
 
 @login_required
@@ -375,6 +428,7 @@ class User(UserMixin, db.Model):
     picture = db.Column(db.Text, default="icons/default_user.png")
     displayname = db.Column(db.Text)
     liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
+    disliked = db.relationship('Post_Dislike', foreign_keys='Post_Dislike.user_id', backref='user', lazy='dynamic')
 
     def __init__(self, email, username, password, displayname):
         if not displayname:
@@ -394,15 +448,31 @@ class User(UserMixin, db.Model):
 
     def unlike_post(self, post):
         if self.has_liked_post(post):
-            Post_Like.query.filter(
-                Post_Like.user_id == self.id,
-                Post_Like.post_id == post.id).delete()
+            Post_Like.query.filter_by(
+                user_id=self.id,
+                post_id=post.id).delete()
+
 
     def has_liked_post(self, post):
         return Post_Like.query.filter(
             Post_Like.user_id == self.id,
             Post_Like.post_id == post.id).count() > 0
 
+    def dislike_post(self, post):
+        if not self.has_disliked_post(post):
+            dislike = Post_Dislike(user_id=self.id, post_id=post.id)
+            db.session.add(dislike)
+
+    def undislike_post(self, post):
+        if self.has_disliked_post(post):
+            Post_Dislike.query.filter_by(
+                user_id=self.id,
+                post_id=post.id).delete()
+
+    def has_disliked_post(self, post):
+        return Post_Dislike.query.filter(
+            Post_Dislike.user_id == self.id,
+            Post_Dislike.post_id == post.id).count() > 0
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -413,17 +483,29 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
+    url = db.Column(db.Text)
+    image = db.Column(db.Text)
+
+
+
     likes = db.relationship("Post_Like", backref='post', lazy='dynamic')
+    dislikes = db.relationship("Post_Dislike", backref='post', lazy='dynamic')
+
 
     # cache stuff
     lastcheck = None
     savedresponce = None
 
-    def __init__(self, title, content, postdate, private):
+
+
+    def __init__(self, title, content, postdate, private, url, image):
         self.title = title
         self.content = content
         self.postdate = postdate
         self.private = private
+        self.url = url
+        self.image = image
+
 
     def get_time_string(self):
         # this only needs to be calculated every so often, not for every request
@@ -508,6 +590,11 @@ class Comment(db.Model):
 
 class Post_Like(db.Model):
     # __tablename__ = 'post_like'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+
+class Post_Dislike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
