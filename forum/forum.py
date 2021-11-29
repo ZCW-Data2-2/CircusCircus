@@ -14,6 +14,11 @@ from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
+
+from flask_socketio import SocketIO
+socketio = SocketIO(app)
+
+
 #
 images = Images(app)
 
@@ -21,21 +26,65 @@ db = SQLAlchemy(app)
 
 
 # VIEWS
-@app.route('/profile/<int:user_id>')
-def profile(user_id):
-    user = User.query.filter(User.id == user_id).first()
+
+@login_required
+@app.route('/action_profile_update', methods=['POST', 'GET'])
+def action_profile():
+    pass
+
+
+@app.route('/profile/<user_name>')
+def profile(user_name):
+    user = User.query.filter(User.username == user_name).first()
+    owns_profile = False
     if not user:
         return render_template('error.html', error="user does not exist")
-    return render_template("profile.html", user=user)
+    if current_user.is_authenticated:
+        if current_user.username == user_name:
+            owns_profile = True
+        recent_posts = Post.query.filter(Post.user_id == user.id).order_by(Post.id.desc()).limit(5)
+        recent_comments = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.id.desc()).limit(5)
+    else:
+        recent_posts = Post.query.filter(Post.user_id == user.id, Post.private == False).order_by(
+            Post.id.desc()).limit(5)
+        recent_comments = Comment.query.filter(Comment.user_id == user.id).join(Post).filter(
+            Post.private == False).order_by(Comment.id.desc()).limit(5)
+
+    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts, owns_profile=owns_profile)
+
+
+
+@app.route('/chat',methods=['GET', 'POST'])
+def sessions():
+    if current_user.is_authenticated:
+        user = current_user
+        return render_template("session.html", user=user)
+    else:
+        return render_template("login.html", alert="login to join open chat room")
+
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+
+@socketio.on('my event')
+def handle_my_custom_event(json, methods=['GET', 'POST']):
+    print('received my event: ' + str(json))
+    socketio.emit('my response', json, callback=messageReceived)
+   # return render_template("login.html")
+
 
 @app.route('/profile')
 def profile_default():
     if current_user.is_authenticated:
         user = current_user
-        return render_template("profile.html",user=user)
+        return render_template("profile.html", user=user)
     else:
         return render_template("login.html", alert="login to edit your profile")
 
+if __name__ == '__main__':
+    port = int(os.environ["PORT"])
+    app.run(host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, debug=True)
 
 @app.route('/')
 def index():
@@ -52,7 +101,8 @@ def subforum():
     if current_user.is_authenticated:
         posts = Post.query.filter(Post.subforum_id == subforum_id).order_by(Post.id.desc()).limit(50)
     else:
-        posts = Post.query.filter(Post.subforum_id == subforum_id, Post.private == False).order_by(Post.id.desc()).limit(50)
+        posts = Post.query.filter(Post.subforum_id == subforum_id, Post.private == False).order_by(
+            Post.id.desc()).limit(50)
     if not subforum.path:
         subforum.path = generateLinkPath(subforum.id)
 
@@ -118,6 +168,10 @@ def action_post():
     user = current_user
     title = request.form['title']
     content = request.form['content']
+    private = False
+    if request.form.get('private', False):
+        private = True
+
     # check for valid posting
     errors = []
     retry = False
@@ -129,10 +183,13 @@ def action_post():
         retry = True
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
-    post = Post(title, content, datetime.datetime.now())
+    # if request.method == 'POST':
+    #     return request.form.getlist(private)
+    post = Post(title, content, datetime.datetime.now(), private)
     subforum.posts.append(post)
     user.posts.append(post)
     db.session.commit()
+
     return redirect("/viewpost?post=" + str(post.id))
 
 @login_required
@@ -176,6 +233,7 @@ def action_createaccount():
     username = request.form['username']
     password = request.form['password']
     email = request.form['email']
+    displayname = request.form['displayname']
     errors = []
     retry = False
     if username_taken(username):
@@ -187,12 +245,12 @@ def action_createaccount():
     if not valid_username(username):
         errors.append("Username is not valid!")
         retry = True
-    # if not valid_password(password):
-    # 	errors.append("Password is not valid!")
-    # 	retry = True
+    if not valid_password(password):
+        errors.append("Password is not valid!")
+        retry = True
     if retry:
         return render_template("login.html", errors=errors)
-    user = User(email, username, password)
+    user = User(email, username, password, displayname)
     if user.username == "admin":
         user.admin = True
     db.session.add(user)
@@ -285,11 +343,15 @@ class User(UserMixin, db.Model):
     posts = db.relationship("Post", backref="user")
     comments = db.relationship("Comment", backref="user")
     picture = db.Column(db.Text, default="icons/default_user.png")
+    displayname = db.Column(db.Text)
 
-    def __init__(self, email, username, password):
+    def __init__(self, email, username, password, displayname):
+        if not displayname:
+            displayname = username
         self.email = email
         self.username = username
         self.password_hash = generate_password_hash(password)
+        self.displayname = displayname
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -322,16 +384,20 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
+<<<<<<< HEAD
     likes = db.relationship("Post_Like", backref='post', lazy='dynamic')
+=======
+>>>>>>> c1ca09cd3800e452213789389ed8c3d5b05bc5df
 
     # cache stuff
     lastcheck = None
     savedresponce = None
 
-    def __init__(self, title, content, postdate):
+    def __init__(self, title, content, postdate, private):
         self.title = title
         self.content = content
         self.postdate = postdate
+        self.private = private
 
     def get_time_string(self):
         # this only needs to be calculated every so often, not for every request
@@ -383,6 +449,7 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey("post.id"))
 
     lastcheck = None
+
     savedresponce = None
 
     def __init__(self, content, postdate):
