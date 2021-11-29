@@ -15,7 +15,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_images import *
 
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room, leave_room, emit
+from flask_session import Session
+
 socketio = SocketIO(app)
 
 
@@ -55,21 +57,54 @@ def profile(user_name):
 
 
 @app.route('/chat',methods=['GET', 'POST'])
-def sessions():
+def chat():
     if current_user.is_authenticated:
-        user = current_user
-        return render_template("session.html", user=user)
+        user = current_user.username
+        room="Open Chat Room"
+        session['user'] = user
+        session['room'] = room
+        ##return "chat"
+        return render_template("session1.html", session=session)
     else:
         return render_template("login.html", alert="login to join open chat room")
 
-def messageReceived(methods=['GET', 'POST']):
-    print('message was received!!!')
+@socketio.on('join', namespace='/chat')
+def join(message):
+    user = current_user.username
+    room="Open Chat Room"
+    join_room(room)
+    emit('status', {'msg':  'Keerthi' + ' has joined the chat'}, room = room)
+
+@socketio.on('text', namespace='/chat')
+def text(message):
+    user = current_user.username
+    room = "Open Chat Room"
+    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, room=room)
 
 
-@socketio.on('my event')
-def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('received my event: ' + str(json))
-    socketio.emit('my response', json, callback=messageReceived)
+@socketio.on('left', namespace='/chat')
+def left(message):
+    user = current_user.username
+    room = "Open Chat Room"
+    leave_room(room)
+    session.clear()
+    emit('status', {'msg': user + ' has left the room.'}, room=room)
+
+#@app.route('/chat',methods=['GET', 'POST'])
+#def sessions():
+#    if current_user.is_authenticated:
+#        user = current_user
+#        return render_template("session.html", user=user)
+#    else:
+#        return render_template("login.html", alert="login to join open chat room")
+
+#def messageReceived(methods=['GET', 'POST']):
+#    print('message was received!!!')
+#
+#@socketio.on('my event')
+#def handle_my_custom_event(json, methods=['GET', 'POST']):
+#    print('received my event: ' + str(json))
+#    socketio.emit('my response', json, callback=messageReceived)
    # return render_template("login.html")
 
 
@@ -85,6 +120,7 @@ if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
+    session = Session(app)
 
 @app.route('/')
 def index():

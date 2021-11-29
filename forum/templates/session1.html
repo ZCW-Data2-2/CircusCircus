@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+    <div class="chatwindow">
+      <h2 >Open Chat Room</h2>
+      <textarea id="chat" cols="70" rows="10" placeholder="No messages yet..."></textarea><br /><br />
+      <input type="text" id="text" size="60" placeholder="Enter your message here" />
+      <button type="button" id="send" class="btn btn-success">SEND</button><br /><br />
+      <center><button type="button" class="btn btn-danger" onclick=leave_chat()>Leave this Chat</button></center>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
+    <script type="text/javascript">
+
+            var socket;
+            $(document).ready(function(){
+                socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+                socket.on('connect', function() {
+                    socket.emit('join', {});
+                });
+                socket.on('status', function(data) {
+                    $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
+                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                });
+                socket.on('message', function(data) {
+                    $('#chat').val($('#chat').val() + data.msg + '\n');
+                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                });
+                $('#send').click(function(e) {
+                        text = $('#text').val();
+                        $('#text').val('');
+                        socket.emit('text', {msg: text});
+                });
+            });
+            function leave_chat() {
+                socket.emit('left', {}, function() {
+                    socket.disconnect();
+                    // go back to the login page
+                    window.location.href = "/profile/";
+                });
+            }
+        </script>
+
+{% endblock %}
