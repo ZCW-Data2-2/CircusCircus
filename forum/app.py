@@ -12,4 +12,6 @@ app.config.update(
     IMAGES_PATH=['images'],
     SQLALCHEMY_TRACK_MODIFICATIONS=True,
     SESSION_TYPE="filesystem"
+    UPLOAD_FOLDER = '/path/to/the/uploads',
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 )
