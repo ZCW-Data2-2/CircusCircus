@@ -6,10 +6,20 @@
         <div class="row">
             <div class="col-md-6 col-lg-4 centered">
                 <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
+                {% if owns_profile %}
+                    <div class="custom-file">
+                        <input type="file" id="getFile" class="custom-file-input" id="customFile" style="width:100%"
+                               display="none">
+                    </div>
+                {% endif %}
                 <h2> {{ user.username }}</h2>
                 {% if current_user.is_authenticated %}
                     <div><b>email: </b>{{ user.email }}</div>
+                    <div id="email_edit">
+                        <input class="form-control" type="email" placeholder="{{ user.email }}" name="email">
+                    </div>
                 {% endif %}
+
 
             </div>
 
