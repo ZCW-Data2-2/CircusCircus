@@ -1,6 +1,6 @@
-<img src="{{ resized_img_src('cheapy.jpg', width=200, height=200, mode='fit', quality=95) }}" alt="logo"/>
 <a href="/" id="nolinks">
-    <b>{{ config.SITE_NAME }}</b>
+	<img src="{{url_for('images', filename='logo2.png', width=100)}}" />
+	<b>{{ config.SITE_NAME }}</b>
 </a>
 {% if config.SITE_DESCRIPTION %} - {% endif %}
 <i>{{ config.SITE_DESCRIPTION }}</i>
