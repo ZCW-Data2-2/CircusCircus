@@ -3,6 +3,7 @@
 {{ path|safe}}
 
 <div class="actualpost">
+
     <div class="actualposttitle">
         <a href="/viewpost?post={{ post.id }}">{{post.title}}</a>
         <div class="postposter" {% if post.user.admin %} style="color: red;" {% endif %}>
@@ -15,6 +16,11 @@
     </div>
     <div class="postcontent">
         {{post.content}}
+      
+   		<br><br>
+		<textare><b>Your attached hyperlink:</b></textare><br>
+		<a href="{{post.url}}">{{post.url}}</a>
+      
     </div>
 
 </div>
@@ -26,6 +32,7 @@
             <a href="{{ url_for('action_like', post_id=post.id, action='like') }}"><img src="{{url_for('images', filename='heart.png', width=30)}}" />Like</a>
         {% endif %}
         {{ post.likes.count() }} likes
+
 </div>
 
 
