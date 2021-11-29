@@ -18,6 +18,29 @@
 	</div>
 
 </div>
+
+<div class="likepost" id="likepost">
+
+<!--	<input type="submit" name="Like" value="Like">-->
+<!--	<input type="submit" name="Dislike" value="Dislike">-->
+<!--	<button style="background-color: blue;" type="button">-->
+<!--I am a blue button! Click me!-->
+<!--</button>-->
+<!--	<button type="button">Like!</button>-->
+<!--	<a href="/likepost/{{task.id}}">Like</a>-->
+<!--	<br>-->
+<!--	<a href="/likepost/{{task.id}}">Dislike</a>-->
+	{% for post in posts %}
+  		{% if current_user.has_liked_post(post) %}
+    	<a href="{{ url_for('action_like', post_id=post.id, action='unlike') }}">Unlike</a>
+  	{% else %}
+    	<a href="{{ url_for('actio_like', post_id=post.id, action='like') }}">Like</a>
+  		{% endif %}
+  		{{ post.likes.count() }} likes
+	{% endfor %}
+
+</div>
+
 <div class="addcomment" id="addcomment">
 	<form action="/action_comment?post={{ post.id }}" method="POST">
 		<textarea class="inputbox varwidth" rows="6" name="content"></textarea><br>
