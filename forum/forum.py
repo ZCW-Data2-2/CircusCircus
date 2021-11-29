@@ -16,8 +16,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_images import *
 
 from flask_socketio import SocketIO
-socketio = SocketIO(app)
 
+socketio = SocketIO(app)
 
 #
 images = Images(app)
@@ -50,17 +50,18 @@ def profile(user_name):
         recent_comments = Comment.query.filter(Comment.user_id == user.id).join(Post).filter(
             Post.private == False).order_by(Comment.id.desc()).limit(5)
 
-    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts, owns_profile=owns_profile)
+    return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts,
+                           owns_profile=owns_profile)
 
 
-
-@app.route('/chat',methods=['GET', 'POST'])
+@app.route('/chat', methods=['GET', 'POST'])
 def sessions():
     if current_user.is_authenticated:
         user = current_user
         return render_template("session.html", user=user)
     else:
         return render_template("login.html", alert="login to join open chat room")
+
 
 def messageReceived(methods=['GET', 'POST']):
     print('message was received!!!')
@@ -70,7 +71,9 @@ def messageReceived(methods=['GET', 'POST']):
 def handle_my_custom_event(json, methods=['GET', 'POST']):
     print('received my event: ' + str(json))
     socketio.emit('my response', json, callback=messageReceived)
-   # return render_template("login.html")
+
+
+# return render_template("login.html")
 
 
 @app.route('/profile')
@@ -81,10 +84,12 @@ def profile_default():
     else:
         return render_template("login.html", alert="login to edit your profile")
 
+
 if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
+
 
 @app.route('/')
 def index():
@@ -192,6 +197,7 @@ def action_post():
 
     return redirect("/viewpost?post=" + str(post.id))
 
+
 @login_required
 @app.route('/action_like/<int:post_id>/<action>')
 # @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
@@ -204,7 +210,6 @@ def action_like(post_id, action):
         current_user.unlike_post(post)
         db.session.commit()
     return redirect(request.referrer)
-
 
 
 @app.route('/action_login', methods=['POST'])
@@ -358,8 +363,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
-
     def like_post(self, post):
         if not self.has_liked_post(post):
             like = Post_Like(user_id=self.id, post_id=post.id)
@@ -477,6 +480,7 @@ class Comment(db.Model):
         else:
             self.savedresponce = "Just a moment ago!"
         return self.savedresponce
+
 
 class Post_Like(db.Model):
     # __tablename__ = 'post_like'
