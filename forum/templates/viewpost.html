@@ -38,9 +38,9 @@
 
 <div class="dislikepost" id="dislikepost">
         {% if current_user.has_disliked_post(post) %}
-            <a href="{{ url_for('action_dislike', post_id=post.id, action='undislike') }}"><img src="{{url_for('images', filename='sadpoop.jpeg', width=70)}}" />Undislike</a>
+            <a href="{{ url_for('action_dislike', post_id=post.id, action='undislike') }}"><img src="{{url_for('images', filename='sadpoop.jpg', width=50)}}" />Undislike</a>
         {% else %}
-            <a href="{{ url_for('action_dislike', post_id=post.id, action='dislike') }}"><img src="{{url_for('images', filename='sadpoop.jpeg', width=50)}}" />Dislike</a>
+            <a href="{{ url_for('action_dislike', post_id=post.id, action='dislike') }}"><img src="{{url_for('images', filename='sadpoop.jpg', width=30)}}" />Dislike</a>
         {% endif %}
         {{ post.dislikes.count() }} dislikes
 </div>
