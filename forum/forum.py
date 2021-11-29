@@ -345,7 +345,7 @@ class User(UserMixin, db.Model):
     comments = db.relationship("Comment", backref="user")
     picture = db.Column(db.Text, default="icons/default_user.png")
     displayname = db.Column(db.Text)
-    # liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
+    liked = db.relationship('Post_Like', foreign_keys='Post_Like.user_id', backref='user', lazy='dynamic')
 
     def __init__(self, email, username, password, displayname):
         if not displayname:
