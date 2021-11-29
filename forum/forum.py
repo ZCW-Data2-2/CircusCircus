@@ -303,12 +303,12 @@ class User(UserMixin, db.Model):
 
     def unlike_post(self, post):
         if self.has_liked_post(post):
-            Post_Like.query.filter_by(
+            Post_Like.query.filter(
                 Post_Like.user_id == self.id,
                 Post_Like.user_id == post.id).delete()
 
     def has_liked_post(self, post):
-        return Post_Like.query.filter_by(
+        return Post_Like.query.filter(
             Post_Like.user_id == self.id,
             Post_Like.user_id == post.id).count() > 0
 
