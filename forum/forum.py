@@ -29,9 +29,33 @@ db = SQLAlchemy(app)
 # VIEWS
 
 @login_required
-@app.route('/action_profile_update', methods=['POST', 'GET'])
+@app.route('/action_profile_update', methods=['POST'])
 def action_profile():
-    pass
+    filename = False
+    if not current_user.is_authenticated:
+        return render_template('error.html', error="Not Logged in, Shouldn't be here")
+    user = User.query.filter_by(username=current_user.username).first()
+    if 'profile_pic' in request.files:
+        profile_pic = request.files['profile_pic']
+        if profile_pic.filename != "":
+            profile_pic.filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+            file_extension = profile_pic.filename.split('.')[-1].lower()
+            if file_extension in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}:
+                filename = f"{current_user.username}.{file_extension}"
+                profile_pic.save(os.path.join('.', 'forum', 'images', filename))
+            else:
+                return render_template('error.html', error="bad filetype")
+
+    email = request.form.get('email')  # access the data inside
+    if email != current_user.email:
+        if email_taken(email):
+            return render_template('error.html', error="An account already exists with this email!")
+    if email:
+        user.email = email
+    if filename:
+        user.picture = filename
+    db.session.commit()
+    return redirect('/profile')
 
 
 @app.route('/profile/<user_name>')
@@ -513,6 +537,10 @@ def add_subforum(title, description, parent=None):
     print("adding " + title)
     db.session.commit()
     return sub
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
 """

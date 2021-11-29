@@ -7,17 +7,42 @@
             <div class="col-md-6 col-lg-4 centered">
                 <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
                 {% if owns_profile %}
-                    <div class="custom-file">
-                        <input type="file" id="getFile" class="custom-file-input" id="customFile" style="width:100%"
-                               display="none">
+                    <form method="POST" enctype="multipart/form-data" action="/action_profile_update">
+                    <div class="custom-file" id="file_div" style="display: none">
+                        <input type="file" id="getFile" class="custom-file-input" name="profile_pic" id="customFile" style="width:100%">
                     </div>
                 {% endif %}
                 <h2> {{ user.username }}</h2>
                 {% if current_user.is_authenticated %}
                     <div><b>email: </b>{{ user.email }}</div>
-                    <div id="email_edit">
+                    {% if owns_profile %}
+                    <div id="email_edit" style="display: none">
                         <input class="form-control" type="email" placeholder="{{ user.email }}" name="email">
+                    <input class="form-control btn btn-primary" type="submit" value="Update Profile">
                     </div>
+                    </form>
+                    <button id="toggle" class="form-control btn btn-primary">Edit Profile</button>
+                        {% endif %}
+                    <script type="text/javascript">
+                        const target1 = document.getElementById("file_div");
+                        const target2 = document.getElementById("email_edit");
+                        const target3 = document.getElementById("toggle");
+                        const btn = document.getElementById("toggle");
+                        btn.onclick = function () {
+                            targets = [target1, target2, target3];
+                            targets.forEach(function (item, index) {
+                                    if (item.style.display !== "none") {
+                                        item.style.display = "none";
+                                    } else {
+                                        item.style.display = "block";
+                                    }
+                                }
+                            )
+                        }
+
+
+                    </script>
+
                 {% endif %}
 
 

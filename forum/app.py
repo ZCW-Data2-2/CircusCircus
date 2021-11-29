@@ -10,5 +10,7 @@ app.config.update(
     SITE_NAME="CHYRP",
     SITE_DESCRIPTION="CHYRP Has You Reading Posts",
     IMAGES_PATH=['images'],
-    SQLALCHEMY_TRACK_MODIFICATIONS=True
+    SQLALCHEMY_TRACK_MODIFICATIONS=True,
+    UPLOAD_FOLDER = '/path/to/the/uploads',
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 )
