@@ -5,7 +5,11 @@ from flask_login.utils import login_required
 import re
 from flask_login.login_manager import LoginManager
 from flask_images import *
-from flask_socketio import SocketIO, join_room, leave_room, emit
+
+
+
+from flask_socketio import SocketIO, join_room, leave_room, emit, send
+
 from flask_session import Session
 from forum.models import *
 from .shared_functions import email_taken, add_subforum, valid_password, valid_username, username_taken
@@ -39,15 +43,14 @@ def index():
 
 
 
-@app.route('/chat', methods=['GET', 'POST'])
+@app.route('/chat',methods=['GET', 'POST'])
 def chat():
     if current_user.is_authenticated:
-        user = current_user.username
-        room = "Open Chat Room"
-        session['user'] = user
-        session['room'] = room
+        #room="Open Chat Room"
+        #session['user'] = user
+        #session['room'] = room
         ##return "chat"
-        return render_template("session1.html", session=session)
+        return render_template("session1.html")
     else:
         return render_template("login.html", alert="login to join open chat room")
 
@@ -55,43 +58,45 @@ def chat():
 @socketio.on('join', namespace='/chat')
 def join(message):
     user = current_user.username
-    room = "Open Chat Room"
-    join_room(room)
-    emit('status', {'msg': 'Keerthi' + ' has joined the chat'}, room=room)
+    #room="Open Chat Room"
+    #join_room(room)
+    emit('status', {'msg': user + ' has joined the chat'}, broadcast=True)
 
 
 @socketio.on('text', namespace='/chat')
 def text(message):
     user = current_user.username
-    room = "Open Chat Room"
-    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, room=room)
+    #room = "Open Chat Room"
+    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, broadcast=True)
 
 
 @socketio.on('left', namespace='/chat')
 def left(message):
     user = current_user.username
-    room = "Open Chat Room"
-    leave_room(room)
-    session.clear()
-    emit('status', {'msg': user + ' has left the room.'}, room=room)
+#    room = "Open Chat Room"
+#    leave_room(room)
+#    session.clear()
+    emit('status', {'msg': user + ' has left the room.'})
 
 
 # @app.route('/chat',methods=['GET', 'POST'])
 # def sessions():
 #    if current_user.is_authenticated:
 #        user = current_user
-#        return render_template("session.html", user=user)
+#        return render_template("session3.html", user=user)
 #    else:
 #        return render_template("login.html", alert="login to join open chat room")
 
 # def messageReceived(methods=['GET', 'POST']):
 #    print('message was received!!!')
 #
-# @socketio.on('my event')
-# def handle_my_custom_event(json, methods=['GET', 'POST']):
+
+#@socketio.on('chat message')
+#def handle_my_custom_event(json, methods=['GET', 'POST']):
 #    print('received my event: ' + str(json))
-#    socketio.emit('my response', json, callback=messageReceived)
-# return render_template("login.html")
+#    socketio.emit('msg', json, callback=messageReceived)
+   # return render_template("login.html")
+
 
 
 
@@ -101,7 +106,7 @@ if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
-    session = Session(app)
+    #Session(app)
 
 
 
@@ -246,14 +251,48 @@ username_regex = re.compile("^[a-zA-Z0-9!@#%&]{4,40}$")
 
 
 
-# def email_taken(email):
-#     return User.query.filter(User.email == email).first()
 
 
 
 
+class Messages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name=db.Column(db.Text, db.ForeignKey('user.username'))
+    message = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime)
+
+def init_site():
+    admin = add_subforum("Forum", "Announcements, bug reports, and general discussion about the forum belongs here")
+    add_subforum("Announcements", "View forum announcements here", admin)
+    add_subforum("Bug Reports", "Report bugs with the forum here", admin)
+    add_subforum("General Discussion", "Use this subforum to post anything you want")
+    add_subforum("Other", "Discuss other things here")
+
+
+def add_subforum(title, description, parent=None):
+    sub = Subforum(title, description)
+    if parent:
+        for subforum in parent.subforums:
+            if subforum.title == title:
+                return
+        parent.subforums.append(sub)
+    else:
+        subforums = Subforum.query.filter(Subforum.parent_id == None).all()
+        for subforum in subforums:
+            if subforum.title == title:
+                return
+        db.session.add(sub)
+    print("adding " + title)
+    db.session.commit()
+    return sub
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 # OBJECT MODELS NOW MOVED
+
 
 
 """
