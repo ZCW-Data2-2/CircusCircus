@@ -8,7 +8,7 @@ from flask_images import *
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
 from forum.models import *
-from .shared_functions import email_taken
+from .shared_functions import email_taken, valid_title, valid_content, valid_password, valid_username, username_taken
 from forum.profile.profile_blueprint import profile_blueprint, update_profile_blueprint, default_profile_blueprint
 
 
@@ -140,8 +140,11 @@ def addpost():
 def viewpost():
     postid = int(request.args.get("post"))
     post = Post.query.filter(Post.id == postid).first()
+    if post.private:
+        if not current_user.is_authenticated:
+            return render_template("login.html", alert="login to view private posts")
     if not post:
-        return error("That post does not exist!")
+        return render_template('error.html', error=f"Post with id {postid} does not exist.")
     if not post.subforum.path:
         subforum.path = generateLinkPath(post.subforum.id)
     comments = Comment.query.filter(Comment.post_id == postid).order_by(
@@ -330,34 +333,12 @@ password_regex = re.compile("^[a-zA-Z0-9!@#%&]{6,40}$")
 username_regex = re.compile("^[a-zA-Z0-9!@#%&]{4,40}$")
 
 
-# Account checks
-def username_taken(username):
-    return User.query.filter(User.username == username).first()
-
 
 # def email_taken(email):
 #     return User.query.filter(User.email == email).first()
 
 
-def valid_username(username):
-    if not username_regex.match(username):
-        # username does not meet password reqirements
-        return False
-    # username is not taken and does meet the password requirements
-    return True
 
-
-def valid_password(password):
-    return password_regex.match(password)
-
-
-# Post checks
-def valid_title(title):
-    return len(title) >= 4 and len(title) <= 140
-
-
-def valid_content(content):
-    return len(content) >= 10 and len(content) <= 5000
 
 
 # OBJECT MODELS NOW MOVED

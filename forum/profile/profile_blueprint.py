@@ -1,7 +1,3 @@
-
-
-
-
 import os
 from flask import *
 from flask_login import current_user
