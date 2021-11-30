@@ -6,8 +6,6 @@ import re
 from flask_login.login_manager import LoginManager
 from flask_images import *
 
-
-
 from flask_socketio import SocketIO, join_room, leave_room, emit, send
 
 from flask_session import Session
@@ -17,13 +15,10 @@ from forum.profile.profile_blueprint import profile_blueprint, update_profile_bl
 from forum.subforums.subforums_blueprint import subforum_blueprint
 from forum.post.posts_blueprint import addpost_blueprint, viewpost_blueprint, action_post_blueprint
 
-
 socketio = SocketIO(app)
 images = Images(app)
 
-
-
-#Blueprints
+# Blueprints
 app.register_blueprint(profile_blueprint)
 app.register_blueprint(update_profile_blueprint)
 app.register_blueprint(default_profile_blueprint)
@@ -32,6 +27,7 @@ app.register_blueprint(addpost_blueprint)
 app.register_blueprint(viewpost_blueprint)
 app.register_blueprint(action_post_blueprint)
 
+
 # VIEWS
 @app.route('/')
 def index():
@@ -39,16 +35,12 @@ def index():
     return render_template("subforums.html", subforums=subforums)
 
 
-
-
-
-
-@app.route('/chat',methods=['GET', 'POST'])
+@app.route('/chat', methods=['GET', 'POST'])
 def chat():
     if current_user.is_authenticated:
-        #room="Open Chat Room"
-        #session['user'] = user
-        #session['room'] = room
+        # room="Open Chat Room"
+        # session['user'] = user
+        # session['room'] = room
         ##return "chat"
         return render_template("session1.html")
     else:
@@ -58,24 +50,24 @@ def chat():
 @socketio.on('join', namespace='/chat')
 def join(message):
     user = current_user.username
-    #room="Open Chat Room"
-    #join_room(room)
+    # room="Open Chat Room"
+    # join_room(room)
     emit('status', {'msg': user + ' has joined the chat'}, broadcast=True)
 
 
 @socketio.on('text', namespace='/chat')
 def text(message):
     user = current_user.username
-    #room = "Open Chat Room"
+    # room = "Open Chat Room"
     emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, broadcast=True)
 
 
 @socketio.on('left', namespace='/chat')
 def left(message):
     user = current_user.username
-#    room = "Open Chat Room"
-#    leave_room(room)
-#    session.clear()
+    #    room = "Open Chat Room"
+    #    leave_room(room)
+    #    session.clear()
     emit('status', {'msg': user + ' has left the room.'})
 
 
@@ -91,32 +83,23 @@ def left(message):
 #    print('message was received!!!')
 #
 
-#@socketio.on('chat message')
-#def handle_my_custom_event(json, methods=['GET', 'POST']):
+# @socketio.on('chat message')
+# def handle_my_custom_event(json, methods=['GET', 'POST']):
 #    print('received my event: ' + str(json))
 #    socketio.emit('msg', json, callback=messageReceived)
-   # return render_template("login.html")
-
-
-
-
+# return render_template("login.html")
 
 
 if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
-    #Session(app)
-
-
-
-
+    # Session(app)
 
 
 @app.route('/loginform')
 def loginform():
     return render_template("login.html")
-
 
 
 # ACTIONS
@@ -135,8 +118,6 @@ def comment():
     post.comments.append(comment)
     db.session.commit()
     return redirect("/viewpost?post=" + str(post_id))
-
-
 
 
 # @login_required
@@ -224,9 +205,6 @@ def error(errormessage):
     return "<b style=\"color: red;\">" + errormessage + "</b>"
 
 
-
-
-
 # from forum.app import db, app
 
 
@@ -249,18 +227,6 @@ def load_user(userid):
 password_regex = re.compile("^[a-zA-Z0-9!@#%&]{6,40}$")
 username_regex = re.compile("^[a-zA-Z0-9!@#%&]{4,40}$")
 
-
-
-
-
-
-
-class Messages(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user_name=db.Column(db.Text, db.ForeignKey('user.username'))
-    message = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime)
 
 def init_site():
     admin = add_subforum("Forum", "Announcements, bug reports, and general discussion about the forum belongs here")
@@ -291,8 +257,8 @@ def add_subforum(title, description, parent=None):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
-# OBJECT MODELS NOW MOVED
 
+# OBJECT MODELS NOW MOVED
 
 
 """
