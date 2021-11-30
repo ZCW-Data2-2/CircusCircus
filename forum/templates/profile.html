@@ -23,25 +23,7 @@
                     </form>
                     <button id="toggle" class="form-control btn btn-primary">Edit Profile</button>
                         {% endif %}
-                    <script type="text/javascript">
-                        const target1 = document.getElementById("file_div");
-                        const target2 = document.getElementById("email_edit");
-                        const target3 = document.getElementById("toggle");
-                        const btn = document.getElementById("toggle");
-                        btn.onclick = function () {
-                            targets = [target1, target2, target3];
-                            targets.forEach(function (item, index) {
-                                    if (item.style.display !== "none") {
-                                        item.style.display = "none";
-                                    } else {
-                                        item.style.display = "block";
-                                    }
-                                }
-                            )
-                        }
-
-
-                    </script>
+                    <script type="text/javascript" src="/static/profile_toggle.js"></script>
 
                 {% endif %}
 
