@@ -47,7 +47,6 @@ def action_profile():
     if 'profile_pic' in request.files:
         profile_pic = request.files['profile_pic']
         if profile_pic.filename != "":
-            profile_pic.filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
             file_extension = profile_pic.filename.split('.')[-1].lower()
             if file_extension in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}:
                 filename = f"{current_user.username}.{file_extension}"
