@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_images import *
 
 
-from flask_socketio import SocketIO, join_room, leave_room, emit
+from flask_socketio import SocketIO, join_room, leave_room, emit, send
 from flask_session import Session
 
 
@@ -81,56 +81,54 @@ def profile(user_name):
     return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts,
                            owns_profile=owns_profile)
 
-
 @app.route('/chat',methods=['GET', 'POST'])
 def chat():
     if current_user.is_authenticated:
-        user = current_user.username
-        room="Open Chat Room"
-        session['user'] = user
-        session['room'] = room
+        #room="Open Chat Room"
+        #session['user'] = user
+        #session['room'] = room
         ##return "chat"
-        return render_template("session1.html", session=session)
+        return render_template("session1.html")
     else:
         return render_template("login.html", alert="login to join open chat room")
 
 @socketio.on('join', namespace='/chat')
 def join(message):
     user = current_user.username
-    room="Open Chat Room"
-    join_room(room)
-    emit('status', {'msg':  'Keerthi' + ' has joined the chat'}, room = room)
+    #room="Open Chat Room"
+    #join_room(room)
+    emit('status', {'msg': user + ' has joined the chat'}, broadcast=True)
 
 @socketio.on('text', namespace='/chat')
 def text(message):
     user = current_user.username
-    room = "Open Chat Room"
-    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, room=room)
+    #room = "Open Chat Room"
+    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, broadcast=True)
 
 
 @socketio.on('left', namespace='/chat')
 def left(message):
     user = current_user.username
-    room = "Open Chat Room"
-    leave_room(room)
-    session.clear()
-    emit('status', {'msg': user + ' has left the room.'}, room=room)
+#    room = "Open Chat Room"
+#    leave_room(room)
+#    session.clear()
+    emit('status', {'msg': user + ' has left the room.'})
 
 #@app.route('/chat',methods=['GET', 'POST'])
 #def sessions():
 #    if current_user.is_authenticated:
 #        user = current_user
-#        return render_template("session.html", user=user)
+#        return render_template("session3.html", user=user)
 #    else:
 #        return render_template("login.html", alert="login to join open chat room")
 
 #def messageReceived(methods=['GET', 'POST']):
 #    print('message was received!!!')
 #
-#@socketio.on('my event')
+#@socketio.on('chat message')
 #def handle_my_custom_event(json, methods=['GET', 'POST']):
 #    print('received my event: ' + str(json))
-#    socketio.emit('my response', json, callback=messageReceived)
+#    socketio.emit('msg', json, callback=messageReceived)
    # return render_template("login.html")
 
 
@@ -147,7 +145,7 @@ if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
-    session = Session(app)
+    #Session(app)
 
 
 @app.route('/')
@@ -599,6 +597,12 @@ class Post_Dislike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
+class Messages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name=db.Column(db.Text, db.ForeignKey('user.username'))
+    message = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime)
 
 def init_site():
     admin = add_subforum("Forum", "Announcements, bug reports, and general discussion about the forum belongs here")
