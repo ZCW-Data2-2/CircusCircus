@@ -14,7 +14,6 @@ from forum.profile.profile_blueprint import profile_blueprint, update_profile_bl
 
 socketio = SocketIO(app)
 images = Images(app)
-db = SQLAlchemy(app)
 
 
 
