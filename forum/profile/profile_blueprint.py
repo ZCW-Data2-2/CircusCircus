@@ -1,8 +1,12 @@
+
+
+
+
 import os
 from flask import *
 from flask_login import current_user
 from forum.models import *
-from .shared_functions import email_taken
+from forum.shared_functions import email_taken
 
 profile_blueprint = Blueprint('profile_blueprint', __name__)
 update_profile_blueprint = Blueprint('update_profile_blueprint', __name__)
@@ -39,6 +43,7 @@ def profile(user_name):
 
 @update_profile_blueprint.route('/action_profile_update', methods=['POST'])
 def action_profile():
+
     filename = False
     if not current_user.is_authenticated:
         return render_template('error.html', error="Not Logged in, Shouldn't be here")
@@ -50,7 +55,7 @@ def action_profile():
             file_extension = profile_pic.filename.split('.')[-1].lower()
             if file_extension in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}:
                 filename = f"{current_user.username}.{file_extension}"
-                profile_pic.save(os.path.join('.', 'forum', 'images', filename))
+                profile_pic.save(os.path.join('.','forum', 'images', filename))
             else:
                 return render_template('error.html', error="bad filetype")
 

@@ -1,6 +1,6 @@
 import os
 from flask import *
-from flask_login import LoginManager, current_user, login_user, logout_user
+from flask_login import current_user, login_user, logout_user
 from flask_login.utils import login_required
 import re
 from flask_login.login_manager import LoginManager
@@ -9,19 +9,31 @@ from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
 from forum.models import *
 from .shared_functions import email_taken
+from forum.profile.profile_blueprint import profile_blueprint, update_profile_blueprint, default_profile_blueprint
+
 
 socketio = SocketIO(app)
 images = Images(app)
 db = SQLAlchemy(app)
 
-# VIEWS
 
 
-from .profile_blueprint import profile_blueprint, update_profile_blueprint, default_profile_blueprint
-
+#Blueprints
 app.register_blueprint(profile_blueprint)
 app.register_blueprint(update_profile_blueprint)
 app.register_blueprint(default_profile_blueprint)
+
+
+# VIEWS
+@app.route('/')
+def index():
+    subforums = Subforum.query.filter(Subforum.parent_id == None).order_by(Subforum.id)
+    return render_template("subforums.html", subforums=subforums)
+
+
+
+
+
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
@@ -88,10 +100,6 @@ if __name__ == '__main__':
     session = Session(app)
 
 
-@app.route('/')
-def index():
-    subforums = Subforum.query.filter(Subforum.parent_id == None).order_by(Subforum.id)
-    return render_template("subforums.html", subforums=subforums)
 
 
 @app.route('/subforum')
@@ -117,7 +125,7 @@ def loginform():
     return render_template("login.html")
 
 
-@login_required
+# @login_required
 @app.route('/addpost')
 def addpost():
     subforum_id = int(request.args.get("sub"))
@@ -159,7 +167,7 @@ def comment():
     return redirect("/viewpost?post=" + str(post_id))
 
 
-@login_required
+# @login_required
 @app.route('/action_post', methods=['POST'])
 def action_post():
     subforum_id = int(request.args.get("sub"))
@@ -199,7 +207,7 @@ def action_post():
     return redirect("/viewpost?post=" + str(post.id))
 
 
-@login_required
+# @login_required
 @app.route('/action_like/<int:post_id>/<action>')
 # @app.route('/action_like/<int:post_id>/<action>', methods=['POST', 'GET'])
 def action_like(post_id, action):
@@ -345,11 +353,11 @@ def valid_password(password):
 
 # Post checks
 def valid_title(title):
-    return len(title) > 4 and len(title) < 140
+    return len(title) >= 4 and len(title) <= 140
 
 
 def valid_content(content):
-    return len(content) > 10 and len(content) < 5000
+    return len(content) >= 10 and len(content) <= 5000
 
 
 # OBJECT MODELS NOW MOVED
