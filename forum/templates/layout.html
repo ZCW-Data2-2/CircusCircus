@@ -4,7 +4,7 @@
 
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="bootstrap.min.css")}}">
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="style.css")}}">
-	<link rel="shortcut icon" type="text/css" href="{{url_for('static', filename="favicon.png")}}">
+	<link rel="shortcut icon" type="text/css" href="{{ resized_img_src("logo2.png", width=20, height=20, mode='fit', quality=95) }}">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{ config.SITE_NAME }}</title>
 </head>

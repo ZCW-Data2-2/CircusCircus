@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_images import *
 
 
-from flask_socketio import SocketIO, join_room, leave_room, emit
+from flask_socketio import SocketIO, join_room, leave_room, emit, send
 from flask_session import Session
 
 
@@ -32,9 +32,33 @@ db = SQLAlchemy(app)
 # VIEWS
 
 @login_required
-@app.route('/action_profile_update', methods=['POST', 'GET'])
+@app.route('/action_profile_update', methods=['POST'])
 def action_profile():
-    pass
+    filename = False
+    if not current_user.is_authenticated:
+        return render_template('error.html', error="Not Logged in, Shouldn't be here")
+    user = User.query.filter_by(username=current_user.username).first()
+    if 'profile_pic' in request.files:
+        profile_pic = request.files['profile_pic']
+        if profile_pic.filename != "":
+            profile_pic.filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+            file_extension = profile_pic.filename.split('.')[-1].lower()
+            if file_extension in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}:
+                filename = f"{current_user.username}.{file_extension}"
+                profile_pic.save(os.path.join('.', 'forum', 'images', filename))
+            else:
+                return render_template('error.html', error="bad filetype")
+
+    email = request.form.get('email')  # access the data inside
+    if email != current_user.email:
+        if email_taken(email):
+            return render_template('error.html', error="An account already exists with this email!")
+    if email:
+        user.email = email
+    if filename:
+        user.picture = filename
+    db.session.commit()
+    return redirect('/profile')
 
 
 @app.route('/profile/<user_name>')
@@ -57,56 +81,54 @@ def profile(user_name):
     return render_template("profile.html", user=user, recent_comments=recent_comments, recent_posts=recent_posts,
                            owns_profile=owns_profile)
 
-
 @app.route('/chat',methods=['GET', 'POST'])
 def chat():
     if current_user.is_authenticated:
-        user = current_user.username
-        room="Open Chat Room"
-        session['user'] = user
-        session['room'] = room
+        #room="Open Chat Room"
+        #session['user'] = user
+        #session['room'] = room
         ##return "chat"
-        return render_template("session1.html", session=session)
+        return render_template("session1.html")
     else:
         return render_template("login.html", alert="login to join open chat room")
 
 @socketio.on('join', namespace='/chat')
 def join(message):
     user = current_user.username
-    room="Open Chat Room"
-    join_room(room)
-    emit('status', {'msg':  'Keerthi' + ' has joined the chat'}, room = room)
+    #room="Open Chat Room"
+    #join_room(room)
+    emit('status', {'msg': user + ' has joined the chat'}, broadcast=True)
 
 @socketio.on('text', namespace='/chat')
 def text(message):
     user = current_user.username
-    room = "Open Chat Room"
-    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, room=room)
+    #room = "Open Chat Room"
+    emit('message', {'msg': session.get('user') + ' : ' + str(message['msg'])}, broadcast=True)
 
 
 @socketio.on('left', namespace='/chat')
 def left(message):
     user = current_user.username
-    room = "Open Chat Room"
-    leave_room(room)
-    session.clear()
-    emit('status', {'msg': user + ' has left the room.'}, room=room)
+#    room = "Open Chat Room"
+#    leave_room(room)
+#    session.clear()
+    emit('status', {'msg': user + ' has left the room.'})
 
 #@app.route('/chat',methods=['GET', 'POST'])
 #def sessions():
 #    if current_user.is_authenticated:
 #        user = current_user
-#        return render_template("session.html", user=user)
+#        return render_template("session3.html", user=user)
 #    else:
 #        return render_template("login.html", alert="login to join open chat room")
 
 #def messageReceived(methods=['GET', 'POST']):
 #    print('message was received!!!')
 #
-#@socketio.on('my event')
+#@socketio.on('chat message')
 #def handle_my_custom_event(json, methods=['GET', 'POST']):
 #    print('received my event: ' + str(json))
-#    socketio.emit('my response', json, callback=messageReceived)
+#    socketio.emit('msg', json, callback=messageReceived)
    # return render_template("login.html")
 
 
@@ -123,7 +145,7 @@ if __name__ == '__main__':
     port = int(os.environ["PORT"])
     app.run(host='0.0.0.0', port=port, debug=True)
     socketio.run(app, debug=True)
-    session = Session(app)
+    #Session(app)
 
 
 @app.route('/')
@@ -209,6 +231,7 @@ def action_post():
     title = request.form['title']
     content = request.form['content']
     url = request.form['url']
+    image = request.form['image']
     private = False
     if request.form.get('private', False):
         private = True
@@ -225,7 +248,7 @@ def action_post():
     if retry:
         return render_template("createpost.html", subforum=subforum, errors=errors)
 
-    post = Post(title, content, datetime.datetime.now(), private, url)
+    post = Post(title, content, datetime.datetime.now(), private, url, image)
     # if request.method == 'POST':
     #     return request.form.getlist(private)
 
@@ -427,6 +450,7 @@ class User(UserMixin, db.Model):
                 user_id=self.id,
                 post_id=post.id).delete()
 
+
     def has_liked_post(self, post):
         return Post_Like.query.filter(
             Post_Like.user_id == self.id,
@@ -457,8 +481,8 @@ class Post(db.Model):
     subforum_id = db.Column(db.Integer, db.ForeignKey('subforum.id'))
     postdate = db.Column(db.DateTime)
     private = db.Column(db.Boolean, default=False)
-
     url = db.Column(db.Text)
+    image = db.Column(db.Text)
 
 
 
@@ -472,12 +496,13 @@ class Post(db.Model):
 
 
 
-    def __init__(self, title, content, postdate, private, url):
+    def __init__(self, title, content, postdate, private, url, image):
         self.title = title
         self.content = content
         self.postdate = postdate
         self.private = private
         self.url = url
+        self.image = image
 
 
     def get_time_string(self):
@@ -572,6 +597,12 @@ class Post_Dislike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
+class Messages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name=db.Column(db.Text, db.ForeignKey('user.username'))
+    message = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime)
 
 def init_site():
     admin = add_subforum("Forum", "Announcements, bug reports, and general discussion about the forum belongs here")
@@ -597,6 +628,10 @@ def add_subforum(title, description, parent=None):
     print("adding " + title)
     db.session.commit()
     return sub
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
 """
