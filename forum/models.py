@@ -184,7 +184,12 @@ class Post_Dislike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
-
+class Messages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name=db.Column(db.Text, db.ForeignKey('user.username'))
+    message = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime)
 
 
 
