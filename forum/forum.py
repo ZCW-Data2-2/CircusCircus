@@ -19,11 +19,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os 
 
 app = Flask(__name__)
+
 app.config.update(
     TESTING=True,
     SECRET_KEY=b'kristofer',
 	SITE_NAME = "Schooner",
-	SITE_DESCRIPTION = "a schooner forum" #,
+	SITE_DESCRIPTION = "a schooner forum",
 	SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 	#'postgresql://' # ccuser:foobar@localhost/circuscircus'
 )
