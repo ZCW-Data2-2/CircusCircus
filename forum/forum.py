@@ -13,13 +13,14 @@ import datetime
 from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
+#SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db'
+
 app = Flask(__name__)
 app.config.update(
     TESTING=True,
     SECRET_KEY=b'kristofer',
 	SITE_NAME = "Schooner",
 	SITE_DESCRIPTION = "a schooner forum",
-	#SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db'
 	SQLALCHEMY_DATABASE_URI='postgresql://ccuser:foobar@localhost/circuscircus'
 )
 
@@ -242,6 +243,7 @@ class User(UserMixin, db.Model):
 		self.password_hash = generate_password_hash(password)
 	def check_password(self, password):
 		return check_password_hash(self.password_hash, password)
+
 class Post(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	title = db.Column(db.Text)
