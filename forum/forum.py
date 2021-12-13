@@ -24,7 +24,7 @@ app.config.update(
     SECRET_KEY=b'kristofer',
 	SITE_NAME = "Schooner",
 	SITE_DESCRIPTION = "a schooner forum" #,
-	SQLALCHEMY_DATABASE_URI=  = os.environ['DATABASE_URL']
+	SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 	#'postgresql://' # ccuser:foobar@localhost/circuscircus'
 )
 from flask_images import *
