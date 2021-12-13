@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+
+    <div class="container" style="width: auto">
+        <div class="row">
+            <div class="col-md-6 col-lg-4 centered">
+                <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
+                <h2> {{ user.username }}</h2>
+                {% if current_user.is_authenticated %}
+                    <div><b>email: </b>{{ user.email }}</div>
+                {% endif %}
+
+            </div>
+
+            <div class="col-md-6 col-lg-8 rounded thin-border">
+
+                <div><h2>Recent Posts</h2></div>
+                {% if recent_posts %}
+                    {% for recent_post in recent_posts %}
+                        <div><a href="/viewpost?post={{ recent_post.id }}"> {{ recent_post.title }}</a></div> <br>
+                    {% endfor %}
+                {% endif %}
+                <div><h2>Recent Comments</h2>
+                    {% if recent_comments %}
+                        {% for recent_comment in recent_comments %}
+
+                            <div class="thin-border rounded">  {{ recent_comment.content }} </div>
+                            <div><a href="/viewpost?post={{ recent_comment.post.id }}">attached
+                                to: {{ recent_comment.post.title }}</a></div>
+                            <br>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% if current_user.is_authenticated and current_user.username == user.username %}
+                    <div><h2>Direct Messages</h2></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+
