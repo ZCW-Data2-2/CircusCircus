@@ -376,7 +376,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, unique=True)
     password_hash = db.Column(db.Text)
-    email = db.Column(db.Text, unique=True)
+    email = db.Column(db.Text)
     admin = db.Column(db.Boolean, default=False)
     posts = db.relationship("Post", backref="user")
     comments = db.relationship("Comment", backref="user")
