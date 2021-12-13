@@ -9,6 +9,8 @@ app.config.update(
     SITE_NAME="CHYRP",
     SITE_DESCRIPTION="CHYRP Has You Reading Posts",
     IMAGES_PATH=['images'],
-    SQLALCHEMY_DATABASE_URI='postgresql://ccuser:foobar@localhost/circuscircus',
+    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL'],
+    # SQLALCHEMY_DATABASE_URI='postgresql://ccuser:foobar@localhost/circuscircus',
     SQLALCHEMY_TRACK_MODIFICATIONS=True
 )
+
