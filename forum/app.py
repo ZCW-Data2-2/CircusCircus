@@ -6,5 +6,6 @@ app.config.update(
     SECRET_KEY=b'kristofer',
 	SITE_NAME = "Schooner",
 	SITE_DESCRIPTION = "a schooner forum",
-	SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db'
+	#SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db'
+	SQLALCHEMY_DATABASE_URI='postgresql://ccuser:foobar@localhost/circuscircus'
 )
