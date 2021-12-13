@@ -233,7 +233,7 @@ class User(UserMixin, db.Model):
 	username = db.Column(db.Text, unique=True)
 	password_hash = db.Column(db.Text)
 	email = db.Column(db.Text, unique=True)
-	admin = db.Column(db.Boolean, default=False, unique=True)
+	admin = db.Column(db.Boolean, default=True)
 	posts = db.relationship("Post", backref="user")
 	comments = db.relationship("Comment", backref="user")
 
