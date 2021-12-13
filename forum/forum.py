@@ -4,7 +4,7 @@ from flask_login import LoginManager, current_user, login_user, logout_user
 import datetime
 
 from flask_login.utils import login_required
-from forum.app import app
+#from forum.app import app
 from flask_sqlalchemy import SQLAlchemy
 
 from flask_login import UserMixin
@@ -13,6 +13,15 @@ import datetime
 from flask_login.login_manager import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
+app = Flask(__name__)
+app.config.update(
+    TESTING=True,
+    SECRET_KEY=b'kristofer',
+	SITE_NAME = "Schooner",
+	SITE_DESCRIPTION = "a schooner forum",
+	#SQLALCHEMY_DATABASE_URI='sqlite:////tmp/database.db'
+	SQLALCHEMY_DATABASE_URI='postgresql://ccuser:foobar@localhost/circuscircus'
+)
 
 db = SQLAlchemy(app)
 
