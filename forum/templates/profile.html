@@ -6,10 +6,27 @@
         <div class="row">
             <div class="col-md-6 col-lg-4 centered">
                 <img src="{{ resized_img_src(user.picture, width=300, height=300, mode='fit', quality=95) }}"/>
+                {% if owns_profile %}
+                    <form method="POST" enctype="multipart/form-data" action="/action_profile_update">
+                    <div class="custom-file" id="file_div" style="display: none">
+                        <input type="file" id="getFile" class="custom-file-input" name="profile_pic" id="customFile" style="width:100%">
+                    </div>
+                {% endif %}
                 <h2> {{ user.username }}</h2>
                 {% if current_user.is_authenticated %}
                     <div><b>email: </b>{{ user.email }}</div>
+                    {% if owns_profile %}
+                    <div id="email_edit" style="display: none">
+                        <input class="form-control" type="email" placeholder="{{ user.email }}" name="email">
+                    <input class="form-control btn btn-primary" type="submit" value="Update Profile">
+                    </div>
+                    </form>
+                    <button id="toggle" class="form-control btn btn-primary">Edit Profile</button>
+                        {% endif %}
+                    <script type="text/javascript" src="/static/profile_toggle.js"></script>
+
                 {% endif %}
+
 
             </div>
 
@@ -33,7 +50,7 @@
                     {% endif %}
                 </div>
                 {% if current_user.is_authenticated and current_user.username == user.username %}
-                    <div><h2>Direct Messages</h2></div>
+                   <!-- <div><h2>Direct Messages</h2></div>-->
                 {% endif %}
             </div>
         </div>
