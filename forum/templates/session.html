@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+    <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
+    <div class="message_holder"></div>
+
+    <form action="" id="form" method="POST">
+      <input type="text" id="message" placeholder="Messages"/>
+        <button type="submit">Send</button>
+    </form>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+      socket.on( 'connect', function() {
+      console.log("print connect")
+        socket.emit( 'my event', {
+          data: 'User Connected'
+        } )
+        var form = $( 'form.form' ).addEventListener( 'submit', function( e ) {
+          e.preventDefault()
+          let user_name = "user.username"
+          let user_input = $( 'input.message' ).val()
+          socket.emit( 'my event', {
+          console.log("print my event")
+            user_name : user_name,
+            message : user_input
+          } )
+          $( 'input.message' ).val( '' ).focus()
+        } )
+      } )
+
+      socket.on( 'my response', function( msg ) {
+      //  console.log("print my response")
+        console.log( msg )
+
+          $('h3').remove()
+          $('div.message_holder').append('<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
+
+      })
+    })
+    </script>
+
+{% endblock %}
